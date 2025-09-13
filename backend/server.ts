@@ -1,20 +1,21 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import userRoutes from '../routes/userRoutes';
+// Add other routes as needed, e.g., import projectRoutes from '../routes/projectRoutes';
 
 dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI!)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// WorkItem Model
+// Models (inline or import)
 const WorkItemSchema = new mongoose.Schema({
-  id: String,
   title: String,
   type: String,
   assignee: String,
@@ -22,11 +23,10 @@ const WorkItemSchema = new mongoose.Schema({
   storyPoints: Number,
   tags: [String],
   description: String,
-  column: String, // e.g., "To Do"
+  column: String,
 });
 const WorkItem = mongoose.model('WorkItem', WorkItemSchema);
 
-// Activity Model
 const ActivitySchema = new mongoose.Schema({
   type: String,
   title: String,
@@ -36,14 +36,14 @@ const ActivitySchema = new mongoose.Schema({
 });
 const Activity = mongoose.model('Activity', ActivitySchema);
 
-// WorkItem Routes
-app.get('/api/workitems', async (req, res) => {
-  try {
-    const items = await WorkItem.find();
-    res.json(items);
-  } catch (err) {
-    res.status(500).json({ error: 'Server error' });
-  }
+// Routes
+app.use('/api/users', userRoutes);
+// app.use('/api/projects', projectRoutes); // Uncomment if needed
+
+// WorkItem Routes (example)
+app.get('/api/workitems', async (req: Request, res: Response) => {
+  const items = await WorkItem.find();
+  res.json(items);
 });
 
 app.post('/api/workitems', async (req, res) => {
@@ -97,4 +97,4 @@ app.post('/api/activities', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Backend server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
