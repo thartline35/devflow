@@ -2,11 +2,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Avatar, AvatarFallback } from "../../components/ui/avatar";
 import { Badge } from "../../components/ui/badge";
 import { GitCommit, GitPullRequest, AlertCircle, CheckCircle } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useBoard } from "../../context/BoardContext";
+import axios from "axios";
+import { Activity } from "../../context/BoardContext";
+import { format } from "date-fns";
 
 export function RecentActivity() {
   const { activities } = useBoard();
+  const [activitiesData, setActivities] = useState<Activity[]>([]);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("/api/activities", { headers: { Authorization: `Bearer ${token}` } });
+      setActivities(res.data);
+    };
+    fetchActivities();
+  }, []);
 
   return (
     <Card>
@@ -14,8 +27,8 @@ export function RecentActivity() {
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {activities.map((activity) => (
-          <div key={activity.id} className="flex items-start space-x-3">
+        {activitiesData.map((activity) => (
+          <div key={activity._id} className="flex items-start space-x-3">
             <div className="flex-shrink-0">
               <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
               </div>
@@ -25,6 +38,7 @@ export function RecentActivity() {
                 <p className="text-sm font-medium truncate">{activity.title}</p>
                 <Badge 
                   variant={
+                    // Use "default" for success, "destructive" for error, otherwise "secondary"
                     activity.status === "success" ? "default" : 
                     activity.status === "error" ? "destructive" : 
                     "secondary"
@@ -42,7 +56,7 @@ export function RecentActivity() {
                 </Avatar>
                 <span className="text-xs text-muted-foreground">{activity.user}</span>
                 <span className="text-xs text-muted-foreground">•</span>
-                <span className="text-xs text-muted-foreground">{activity.time}</span>
+                <span className="text-xs text-muted-foreground">{format(activity.timestamp, "hh:mm a")}</span>
               </div>
             </div>
           </div>

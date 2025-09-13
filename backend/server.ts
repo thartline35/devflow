@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import userRoutes from '../routes/userRoutes';
+import projectRoutes from '../routes/projectRoutes';
 // Add other routes as needed, e.g., import projectRoutes from '../routes/projectRoutes';
 
 dotenv.config();
@@ -38,7 +39,7 @@ const Activity = mongoose.model('Activity', ActivitySchema);
 
 // Routes
 app.use('/api/users', userRoutes);
-// app.use('/api/projects', projectRoutes); // Uncomment if needed
+app.use('/api/projects', projectRoutes);
 
 // WorkItem Routes (example)
 app.get('/api/workitems', async (req: Request, res: Response) => {
@@ -95,6 +96,16 @@ app.post('/api/activities', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+// Project Model
+const ProjectSchema = new mongoose.Schema({
+  name: String,
+  description: String,
+  createdBy: mongoose.Schema.Types.ObjectId,
+});
+const Project = mongoose.model('Project', ProjectSchema);
+
+// Basic route example in projectRoutes.ts (create separately if needed)
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));

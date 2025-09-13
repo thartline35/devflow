@@ -20,8 +20,9 @@ export const updateUser = async (req: Request, res: Response) => {
     const updates = req.body;
     const user = await User.findByIdAndUpdate(id, updates, { new: true });
     res.json({ message: 'User updated successfully', user });
-  } catch (err: any) {
-    res.status(400).json({ message: 'Error updating user', error: err.message });
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    res.status(400).json({ message: 'Error updating user', error: errorMessage });
   }
 };
 
@@ -30,7 +31,8 @@ export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await User.find();
     res.json(users);
-  } catch (err: any) {
-    res.status(400).json({ message: 'Error fetching users', error: err.message });
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    res.status(400).json({ message: 'Error fetching users', error: errorMessage });
   }
 };

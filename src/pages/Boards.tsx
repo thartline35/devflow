@@ -13,6 +13,7 @@ import {
 } from "../components/ui/dropdown-menu";
 import { useBoard } from "../context/BoardContext";
 import { useToast } from "../components/ui/use-toast";
+import { useAuth } from "../context/AuthContext";
 
 interface WorkItem {
   id: string;
@@ -132,10 +133,12 @@ function WorkItemCard({ item, columnIndex }: { item: WorkItem; columnIndex: numb
   const handleMove = (toColumn: number) => {
     moveItem(item.id, columnIndex, toColumn);
     addActivity({
-      type: "move",
-      title: `Moved "${item.title}" to ${columns[toColumn].title}`,
-      user: "You",
-      status: "success",
+        type: "move",
+        title: `Moved "${item.title}" to ${columns[toColumn].title}`,
+        user: "You",
+        status: "success",
+        _id: "",
+        timestamp: new Date()
     });
   };
 
@@ -195,6 +198,10 @@ export default function Boards() {
   const { columns, addItem, addActivity } = useBoard();
   const [newItem, setNewItem] = useState<Partial<WorkItem>>({});
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  // Add check for user
+  if (!user) return <div>Please log in</div>;
 
   const addNewItem = () => {
     if (!newItem.title || !newItem.type || !newItem.priority) return;
@@ -213,10 +220,12 @@ export default function Boards() {
     addItem(item, 0); // Add to To Do
 
     addActivity({
-      type: "create",
-      title: `Created new ${item.type}: "${item.title}"`,
-      user: "You",
-      status: "success",
+        type: "create",
+        title: `Created new ${item.type}: "${item.title}"`,
+        user: user.username || "Anonymous",
+        status: "success",
+        _id: "",
+        timestamp: new Date()
     });
 
     setNewItem({});

@@ -12,10 +12,12 @@ import {
   TrendingUp,
   AlertTriangle,
   Calendar,
-  GitCommit
+  GitCommit,
+  Plus
 } from "lucide-react";
 import React from "react";
 import { useBoard } from "../context/BoardContext";
+import axios from "axios";
 
 export default function Dashboard() {
   const { columns } = useBoard();
@@ -25,6 +27,13 @@ export default function Dashboard() {
   const progress = totalItems > 0 ? (doneItems / totalItems) * 100 : 0;
 
   // Other metrics can be derived similarly
+
+  const handleCreateProject = async () => {
+    const name = prompt("Project Name");
+    const description = prompt("Description");
+    await axios.post("/api/projects", { name, description }, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
+    // Refetch or update
+  };
 
   return (
     <div className="space-y-6">
@@ -134,6 +143,10 @@ export default function Dashboard() {
             <Button variant="outline" className="w-full justify-start gap-2">
               <GitCommit className="h-4 w-4" />
               Create Pull Request
+            </Button>
+            <Button variant="outline" className="w-full justify-start gap-2" onClick={handleCreateProject}>
+              <Plus className="h-4 w-4" />
+              Create Project
             </Button>
             <Button variant="outline" className="w-full justify-start gap-2">
               <Clock className="h-4 w-4" />

@@ -16,13 +16,13 @@ interface Column {
   items: WorkItem[];
 }
 
-interface Activity {
-  id: number;
+export interface Activity {
+  _id: string;
   type: string;
   title: string;
   user: string;
-  time: string;
   status: string;
+  timestamp: Date;
 }
 
 interface BoardContextType {
@@ -70,8 +70,8 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
       ...prev,
       {
         ...activity,
-        id: Date.now(),
-        time: new Date().toLocaleTimeString(),
+        _id: Date.now().toString(),
+        timestamp: new Date(),
       },
     ]);
   };
