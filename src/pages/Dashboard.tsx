@@ -15,15 +15,29 @@ import {
   GitCommit,
   Plus
 } from "lucide-react";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useBoard } from "../context/BoardContext";
 import axios from "axios";
 
 export default function Dashboard() {
   const { columns } = useBoard();
+  const [teamMembersCount, setTeamMembersCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get("/api/users", { headers: { Authorization: `Bearer ${token}` } });
+        setTeamMembersCount(res.data.length);
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const totalItems = columns.reduce((sum, col) => sum + col.items.length, 0);
-  const doneItems = columns[3].items.length; // Assuming Done is index 3
+  const doneItems = columns.find(col => col.title === 'Done')?.items.length || 0;
   const progress = totalItems > 0 ? (doneItems / totalItems) * 100 : 0;
 
   // Other metrics can be derived similarly
@@ -78,11 +92,11 @@ export default function Dashboard() {
         />
         <MetricCard
           title="Team Members"
-          value="12"
-          change="2 new this month"
-          changeType="positive"
+          value={teamMembersCount.toString()}
+          change="Active members"
+          changeType="neutral"
           icon={Users}
-          trend={[8, 9, 10, 12]}
+          trend={[8, 9, 10, teamMembersCount]}
         />
       </div>
 
@@ -105,21 +119,21 @@ export default function Dashboard() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">To Do</span>
-                  <Badge variant="secondary">5</Badge>
+                  <Badge variant="secondary">{columns.find(c => c.title === 'To Do')?.items.length || 0}</Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">In Progress</span>
-                  <Badge variant="default">8</Badge>
+                  <Badge variant="default">{columns.find(c => c.title === 'In Progress')?.items.length || 0}</Badge>
                 </div>
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">In Review</span>
-                  <Badge variant="outline">3</Badge>
+                  <Badge variant="outline">{columns.find(c => c.title === 'In Review')?.items.length || 0}</Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Done</span>
-                  <Badge className="bg-success">8</Badge>
+                  <Badge className="bg-success">{columns.find(c => c.title === 'Done')?.items.length || 0}</Badge>
                 </div>
               </div>
             </div>

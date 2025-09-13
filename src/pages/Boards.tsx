@@ -41,97 +41,11 @@ const priorityColors = {
   Low: "outline",
 } as const;
 
-const columns: Column[] = [
-  {
-    title: "To Do",
-    items: [
-      {
-        id: "1",
-        title: "Implement user authentication",
-        type: "Feature",
-        assignee: "JD",
-        priority: "High",
-        storyPoints: 8,
-        tags: ["Frontend", "Security"],
-      },
-      {
-        id: "2",
-        title: "Design system documentation",
-        type: "Task",
-        assignee: "SW",
-        priority: "Medium",
-        storyPoints: 3,
-        tags: ["Documentation"],
-      },
-    ],
-  },
-  {
-    title: "In Progress",
-    items: [
-      {
-        id: "3",
-        title: "API rate limiting",
-        type: "Feature",
-        assignee: "MC",
-        priority: "High",
-        storyPoints: 5,
-        tags: ["Backend", "Performance"],
-      },
-      {
-        id: "4",
-        title: "Fix login redirect bug",
-        type: "Bug",
-        assignee: "JD",
-        priority: "Critical",
-        storyPoints: 2,
-        tags: ["Frontend", "Bug"],
-      },
-    ],
-  },
-  {
-    title: "In Review",
-    items: [
-      {
-        id: "5",
-        title: "Dashboard analytics",
-        type: "Feature",
-        assignee: "SW",
-        priority: "Medium",
-        storyPoints: 13,
-        tags: ["Frontend", "Analytics"],
-      },
-    ],
-  },
-  {
-    title: "Done",
-    items: [
-      {
-        id: "6",
-        title: "Setup CI/CD pipeline",
-        type: "Task",
-        assignee: "MC",
-        priority: "High",
-        storyPoints: 8,
-        tags: ["DevOps", "Infrastructure"],
-      },
-      {
-        id: "7",
-        title: "Database migration script",
-        type: "Task",
-        assignee: "JD",
-        priority: "Medium",
-        storyPoints: 5,
-        tags: ["Backend", "Database"],
-      },
-    ],
-  },
-];
-
 function WorkItemCard({ item, columnIndex }: { item: WorkItem; columnIndex: number }) {
-  const { moveItem, addActivity } = useBoard();
+  const { moveItem, addActivity, columns, deleteItem } = useBoard();
 
-  const handleMove = (toColumn: number) => {
-    moveItem(item.id, columnIndex, toColumn);
+  const handleMove = async (toColumn: number) => {
+    await moveItem(item.id, columnIndex, toColumn);
     addActivity({
         type: "move",
         title: `Moved "${item.title}" to ${columns[toColumn].title}`,
@@ -141,6 +55,18 @@ function WorkItemCard({ item, columnIndex }: { item: WorkItem; columnIndex: numb
         timestamp: new Date()
     });
   };
+
+  const handleDelete = async () => {
+    await deleteItem(item.id, columnIndex);
+    addActivity({
+      type: 'delete',
+      title: `Deleted "${item.title}"`,
+      user: 'You',
+      status: 'success',
+      _id: '',
+      timestamp: new Date(),
+    });
+  }
 
   return (
     <Card className="mb-3 cursor-pointer hover:shadow-md transition-shadow">
@@ -156,8 +82,8 @@ function WorkItemCard({ item, columnIndex }: { item: WorkItem; columnIndex: numb
             <DropdownMenuContent>
               <DropdownMenuItem>Edit</DropdownMenuItem>
               <DropdownMenuItem>Assign</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleMove( (columnIndex + 1) % 4 )}>Move to Next</DropdownMenuItem> {/* Simple move to next */}
-              <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleMove( (columnIndex + 1) % columns.length )}>Move to Next</DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive" onClick={handleDelete}>Delete</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -195,19 +121,27 @@ function WorkItemCard({ item, columnIndex }: { item: WorkItem; columnIndex: numb
 }
 
 export default function Boards() {
-  const { columns, addItem, addActivity } = useBoard();
+  const { columns, loading, error, addItem, addActivity } = useBoard();
   const [newItem, setNewItem] = useState<Partial<WorkItem>>({});
   const { toast } = useToast();
   const { user } = useAuth();
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
   // Add check for user
   if (!user) return <div>Please log in</div>;
 
-  const addNewItem = () => {
+  const addNewItem = async () => {
     if (!newItem.title || !newItem.type || !newItem.priority) return;
 
     const item: WorkItem = {
-      id: Date.now().toString(),
+      id: Date.now().toString(), // Temporary ID, will be replaced by server
       title: newItem.title,
       type: newItem.type,
       assignee: newItem.assignee || "Unassigned",
@@ -217,7 +151,7 @@ export default function Boards() {
       description: newItem.description,
     };
 
-    addItem(item, 0); // Add to To Do
+    await addItem(item, 0); // Add to To Do
 
     addActivity({
         type: "create",
