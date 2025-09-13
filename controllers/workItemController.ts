@@ -16,7 +16,7 @@ export const getWorkItemsForProject = async (req: Request, res: Response) => {
 
     // Check if user is a member of the project
     const isMember = project.members.some(memberId => memberId.toString() === req.user!.id);
-    if (!isMember && project.createdBy.toString() !== req.user!.id && req.user!.role !== 'admin') {
+    if (!isMember && (!project.createdBy || project.createdBy.toString() !== req.user!.id) && req.user!.role !== 'admin') {
       return res.status(403).json({ message: 'Forbidden: You are not a member of this project.' });
     }
 
@@ -50,7 +50,7 @@ export const createWorkItem = async (req: Request, res: Response) => {
 
     // Any member of the project can create work items
     const isMember = project.members.some(memberId => memberId.toString() === req.user!.id);
-    if (!isMember && project.createdBy.toString() !== req.user!.id && req.user!.role !== 'admin') {
+    if (!isMember && (!project.createdBy || project.createdBy.toString() !== req.user!.id) && req.user!.role !== 'admin') {
       return res.status(403).json({ message: 'Forbidden: Only project members can add work items.' });
     }
 
@@ -87,7 +87,7 @@ export const updateWorkItem = async (req: Request, res: Response) => {
     const project = workItem.projectId as any; 
     const isMember = project.members.some((memberId: mongoose.Types.ObjectId) => memberId.toString() === req.user!.id);
 
-    if (!isMember && project.createdBy.toString() !== req.user!.id && req.user!.role !== 'admin') {
+    if (!isMember && (!project.createdBy || project.createdBy.toString() !== req.user!.id) && req.user!.role !== 'admin') {
       return res.status(403).json({ message: 'Forbidden: You do not have permission to update this item.' });
     }
 
