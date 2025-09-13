@@ -8,11 +8,27 @@ import jwt from 'jsonwebtoken'; // Importing jsonwebtoken for JWT operations
 import User from '../models/User'; // Importing the User model
 
 export const signup = async (req: Request, res: Response) => {
-  const { username, email, password, role } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const user = new User({ username, email, password: hashedPassword, role });
-  await user.save();
-  res.status(201).json({ message: 'User created' });
+  try {
+    const { username, email, password, role } = req.body;
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ 
+      username, 
+      email, 
+      password: hashedPassword, 
+      role: role || 'user'  // Default role if not provided
+    });
+    await user.save();
+    res.status(201).json({ message: 'User created successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
 };
 
 export const login = async (req: Request, res: Response) => {
@@ -25,6 +41,12 @@ export const login = async (req: Request, res: Response) => {
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) return res.status(401).json({ message: 'Invalid credentials' });
 
-  const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+  const token = jwt.sign({ 
+    id: user._id,
+    email: user.email,
+    username: user.username,
+    role: user.role || 'user' 
+    }, 
+    process.env.JWT_SECRET!, { expiresIn: '1h' });
   res.json({ token, user: { id: user._id, role: user.role, username: user.username } });
 };

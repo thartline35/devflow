@@ -8,8 +8,15 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
     "rootDir": "../",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "typeRoots": ["./node_modules/@types", "../types"]
   },
-  "include": ["../backend/**/*.ts", "../controllers/**/*.ts", "../models/**/*.ts", "../routes/**/*.ts"],
+  "include": [
+    "../src",
+    "../backend",
+    "../routes",
+    "../middleware",
+    "../types"
+  ],
   "exclude": ["node_modules", "../src/**"]
 }
