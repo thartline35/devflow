@@ -1,8 +1,10 @@
+/* stylelint-disable at-rule-no-unknown */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Azure DevOps inspired design system with professional colors and gradients */
+
 
 @layer base {
   :root {
