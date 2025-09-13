@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import userRoutes from '../routes/userRoutes';
 import projectRoutes from '../routes/projectRoutes';
 import workItemRoutes from '../routes/workItemRoutes';
-import { login, signup } from '../controllers/authController';
+import authRoutes from '../routes/authRoutes';
 
 dotenv.config();
 const app = express();
@@ -20,8 +20,7 @@ mongoose.connect(process.env.MONGO_URI!)
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Auth Routes
-app.post('/api/auth/login', login);
-app.post('/api/auth/signup', signup);
+app.use('/api/auth', authRoutes);
 
 // Main Routes
 app.use('/api/users', userRoutes);

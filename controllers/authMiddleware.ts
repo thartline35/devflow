@@ -1,6 +1,7 @@
 // controllers/authMiddleware.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { AuthUser } from '../types/auth';
 
 export const authenticate = (req: Request, res: Response, next: NextFunction) => {
   const token = req.headers.authorization?.split(' ')[1];
@@ -10,20 +11,8 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-      id: string;
-      email: string;
-      username: string;
-      role: string;
-    };
-    
-    req.user = {
-      id: decoded.id,
-      email: decoded.email,
-      username: decoded.username,
-      role: decoded.role
-    };
-    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as AuthUser;
+    req.user = { id: decoded.id, username: decoded.username, role: decoded.role };
     next();
   } catch (error) {
     return res.status(401).json({ error: 'Invalid token' });
@@ -35,4 +24,4 @@ export const authorize = (roles: string[]) => (req: Request, res: Response, next
     return res.status(403).json({ message: 'Forbidden' });
   }
   next();
-}; 
+};
