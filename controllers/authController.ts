@@ -40,17 +40,21 @@ export const login = async (req: Request, res: Response) => {
   const user = await User.findOne({ email });
   if (!user) return res.status(404).json({ message: 'User not found' });
 
-  if (!user.password) return res.status(401).json({ message: 'Invalid credentials' });
+  // If user has no password, they need to set it up
+  if (!user.password) {
+    return res.json({ passwordSetupRequired: true, email: user.email });
+  }
 
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) return res.status(401).json({ message: 'Invalid credentials' });
 
   const token = jwt.sign({ 
     id: user._id,
+    _id: user._id, // Include _id for compatibility with other parts of the app
     email: user.email,
     username: user.username,
     role: user.role || 'user' 
     }, 
     process.env.JWT_SECRET!, { expiresIn: '1h' });
-  res.json({ token, user: { id: user._id, role: user.role, username: user.username } });
+  res.json({ token, user: { id: user._id, _id: user._id, role: user.role, username: user.username } });
 };
