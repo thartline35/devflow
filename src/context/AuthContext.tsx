@@ -35,6 +35,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
+    console.log('Attempting to log in with:', email);
     const res = await axios.post("http://localhost:3001/api/auth/login", { email, password });
     if (res.data.passwordSetupRequired) {
       return { passwordSetupRequired: true, email };

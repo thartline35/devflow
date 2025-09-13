@@ -14,6 +14,7 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Login form submitted');
     try {
       const result = await login(email, password);
       if (result.passwordSetupRequired) {

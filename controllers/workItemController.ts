@@ -3,6 +3,20 @@ import WorkItem, { IComment } from '../models/WorkItem';
 import Project from '../models/Project';
 import mongoose from 'mongoose';
 
+// Extend Express Request type to include 'user'
+declare global {
+  namespace Express {
+    interface User {
+      id: string;
+      role: string;
+      // add other properties as needed
+    }
+    interface Request {
+      user?: User;
+    }
+  }
+}
+
 // Get all work items for a specific project
 export const getWorkItemsForProject = async (req: Request, res: Response) => {
   try {

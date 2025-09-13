@@ -11,12 +11,16 @@
     "moduleResolution": "node",
     "typeRoots": ["./node_modules/@types", "../types"]
   },
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  },
   "include": [
-    "../src",
     "../backend",
     "../routes",
-    "../middleware",
+    "../models",
+    "../controllers",
     "../types"
   ],
-  "exclude": ["node_modules", "../src/**"]
+  "exclude": ["node_modules"]
 }
