@@ -1,18 +1,24 @@
-import express, { Request, Response, RequestHandler } from 'express';
+import express, { RequestHandler } from 'express';
 import { authenticate } from '../controllers/authMiddleware';
-import { createProject } from '../controllers/projectController'; // Assuming this exists
+import { 
+  createProject, 
+  getMyProjects, 
+  addMemberToProject, 
+  removeMemberFromProject 
+} from '../controllers/projectController';
 
 const router = express.Router();
 
-router.post('/projects', authenticate, async (req: Request, res: Response) => {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  const userId = req.user.id;
-  // Call the createProject controller to handle project creation
-  await createProject(req, res);
-});
+// Get all projects for the logged-in user
+router.get('/', authenticate as RequestHandler, getMyProjects as RequestHandler);
 
-// Add more routes as needed
+// Create a new project
+router.post('/', authenticate as RequestHandler, createProject as RequestHandler);
+
+// Add a member to a project
+router.post('/:projectId/members', authenticate as RequestHandler, addMemberToProject as RequestHandler);
+
+// Remove a member from a project
+router.delete('/:projectId/members/:memberId', authenticate as RequestHandler, removeMemberFromProject as RequestHandler);
 
 export default router;

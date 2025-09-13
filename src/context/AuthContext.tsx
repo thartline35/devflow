@@ -3,6 +3,7 @@ import axios from "axios";
 import { jwtDecode }from "jwt-decode";
 
 interface User {
+  _id: string;
   id: string;
   role: string;
   username: string;
@@ -10,7 +11,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ passwordSetupRequired?: boolean; email?: string }>;
   signup: (username: string, email: string, password: string, role: string) => Promise<void>;
   logout: () => void;
 }
@@ -23,16 +24,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      const decoded = jwtDecode<User>(token);
-      setUser(decoded);
+      try {
+        const decoded: { id: string; role: string; username: string; _id: string } = jwtDecode(token);
+        setUser({ id: decoded.id, role: decoded.role, username: decoded.username, _id: decoded._id });
+      } catch (error) {
+        console.error("Failed to decode token:", error);
+        localStorage.removeItem("token");
+      }
     }
   }, []);
 
   const login = async (email: string, password: string) => {
     const res = await axios.post("http://localhost:3001/api/auth/login", { email, password });
+    if (res.data.passwordSetupRequired) {
+      return { passwordSetupRequired: true, email };
+    }
     localStorage.setItem("token", res.data.token);
     const decoded = jwtDecode<User>(res.data.token);
     setUser(decoded);
+    return {};
   };
 
   const signup = async (username: string, email: string, password: string, role: string) => {

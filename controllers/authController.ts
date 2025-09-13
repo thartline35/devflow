@@ -9,20 +9,24 @@ import User from '../models/User'; // Importing the User model
 
 export const signup = async (req: Request, res: Response) => {
   try {
-    const { username, email, password, role } = req.body;
+    const { username, email, password } = req.body;
     
     // Check if user already exists
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
+
+    // Determine role: first user is admin, others are users
+    const userCount = await User.countDocuments();
+    const role = userCount === 0 ? 'admin' : 'user';
     
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ 
       username, 
       email, 
       password: hashedPassword, 
-      role: role || 'user'  // Default role if not provided
+      role: role
     });
     await user.save();
     res.status(201).json({ message: 'User created successfully' });

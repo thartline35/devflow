@@ -5,31 +5,55 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MainLayout } from "./components/Layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
-import Boards from "./pages/Boards";
+import ProjectBoard from "./pages/ProjectBoard";
 import NotFound from "./pages/NotFound";
 import React from "react";
-import { BoardProvider } from "./context/BoardContext";
+import { AuthProvider } from "./context/AuthContext";
+import { ProjectProvider } from "./context/ProjectContext";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import UserManagement from "./pages/Admin/UserManagement";
+import PrivateRoute from './components/PrivateRoute';
+import SetPassword from "./pages/SetPassword";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <BoardProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <MainLayout>
+    <AuthProvider>
+      <ProjectProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/boards" element={<Boards />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/set-password" element={<SetPassword />} />
+              <Route
+                path="/*"
+                element={
+                  <PrivateRoute>
+                    <MainLayout>
+                      <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/projects/:projectId/board" element={<ProjectBoard />} />
+                        <Route path="/admin/users" element={
+                          <PrivateRoute roles={['admin']}>
+                            <UserManagement />
+                          </PrivateRoute>
+                        } />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </MainLayout>
+                  </PrivateRoute>
+                }
+              />
             </Routes>
-          </MainLayout>
-        </BrowserRouter>
-      </TooltipProvider>
-    </BoardProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ProjectProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
